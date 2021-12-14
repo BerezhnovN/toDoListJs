@@ -1,0 +1,30 @@
+.main-element-control{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 18px;
+}
+
+#content-page{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;   
+}
+
+.task-container {
+    display: flex;
+    align-items: center;
+}
+
+.text-task {
+    font-size: 18px;
+    color: black;
+    margin-left: 8px;
+}
+
+.done-text{
+    color: rgba(0,0,0,0.3);
+    text-decoration: line-through;
+}

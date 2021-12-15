@@ -36,7 +36,10 @@ render = () => {
     while (content.firstChild) {
         content.removeChild(content.firstChild);
     }
-    allTasks.sort((a, b) => a.isCheck > b.isCheck ? 1 : a.isCheck < b.isCheck ? -1 : 0);
+    allTasks.sort((a,b) =>
+    {if(a.isCheck === b.isCheck) return 0;
+    return (a.isCheck > b.isCheck ? 1: -1)
+    })
     allTasks.map((item, index) => {
         const container = document.createElement('div');
         container.id = `task-${index}`;

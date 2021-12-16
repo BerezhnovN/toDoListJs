@@ -2,14 +2,20 @@ let allTasks = JSON.parse(localStorage.getItem('tasks')) || [];
 let valueInput = '';
 let input = null;
 
-window.onload = function () {
+window.onload = async function init() {
     const input = document.getElementById('add-task');
     input.addEventListener('change', updateValue);
+    const resp = await fetch('http://localhost:8000/allTasks', {
+        method: 'GET'
+    });
+    let result = await resp.json();
+    allTasks = result.data;
+
     render();
     localStorage.setItem('tasks', JSON.stringify(allTasks));
 }
 
-onClickButton = () => {
+onClickButton = async () => {
     allTasks.push({
         text: valueInput,
         isCheck: false
@@ -36,9 +42,9 @@ render = () => {
     while (content.firstChild) {
         content.removeChild(content.firstChild);
     }
-    allTasks.sort((a,b) =>
-    {if(a.isCheck === b.isCheck) return 0;
-    return (a.isCheck > b.isCheck ? 1: -1)
+    allTasks.sort((a, b) => {
+        if (a.isCheck === b.isCheck) return 0;
+        return (a.isCheck > b.isCheck ? 1 : -1)
     })
     allTasks.map((item, index) => {
         const container = document.createElement('div');

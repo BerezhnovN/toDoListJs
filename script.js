@@ -2,6 +2,12 @@ let allTasks = [];
 let valueInput = '';
 let input = null;
 
+window.onload = async function init() {
+    const input = document.getElementById('add-task');
+    input.addEventListener('change', updateValue);
+    getLastValue();
+}
+
 const getLastValue = async () => {
     const resp = await fetch('http://localhost:8000/allTasks', {
         method: 'GET'
@@ -11,19 +17,9 @@ const getLastValue = async () => {
     render();
 }
 
-window.onload = async function init() {
-    const input = document.getElementById('add-task');
-    input.addEventListener('change', updateValue);
-    getLastValue();
-}
-
 const onClickButton = async () => {
     const input = document.getElementById('add-task');
     if (valueInput) {
-        allTasks.push({
-            text: valueInput,
-            isCheck: false
-        });
         const resp = await fetch('http://localhost:8000/createTask', {
             method: 'POST',
             headers: {
@@ -35,12 +31,10 @@ const onClickButton = async () => {
                 isCheck: false
             })
         });
-        let result = await resp.json();
-        allTasks = result.data;
 
         valueInput = '';
         input.value = '';
-        render();
+        getLastValue();
     } else {
         alert("Введите хоть какое-нибудь значение!");
     }
@@ -48,7 +42,7 @@ const onClickButton = async () => {
 
 const deleteAll = () => {
     allTasks.map((item, id) => {
-        deleteTask(item.id);
+        deleteTask(item._id);
     })
 }
 
@@ -74,7 +68,7 @@ const render = () => {
             checkbox.type = 'checkbox';
             checkbox.checked = item.isCheck;
             checkbox.onchange = function () {
-                onChangeCheckbox(index);
+                onChangeCheckbox(item._id, item.isCheck);
             }
             container.appendChild(checkbox);
             const text = document.createElement('p');
@@ -91,7 +85,7 @@ const render = () => {
                         text.remove();
                         imageEdit.remove();
                         imageDelete.remove();
-                        editTask(item, item.id, container);
+                        editTask(item, item._id, container);
                     }
                 }
                 container.appendChild(imageEdit);
@@ -100,21 +94,33 @@ const render = () => {
             const imageDelete = document.createElement('img');
             imageDelete.src = 'images/delete.png';
             imageDelete.onclick = () => {
-                deleteTask(item.id);
+                deleteTask(item._id);
             }
-            container.appendChild(imageDelete);
 
+            container.appendChild(imageDelete);
             content.appendChild(container);
         });
 }
 
-const onChangeCheckbox = async (index) => {
-    allTasks[index].isCheck = !allTasks[index].isCheck;
-    render();
+const onChangeCheckbox = async (id, isCheck) => {
+
+    const resp = await fetch('http://localhost:8000/updateTaskFilter', {
+        method: 'PATCH',
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+            'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({
+            _id: id,
+            isCheck: !isCheck
+        })
+    }).then(result => {
+        getLastValue();
+    }).catch((error => console.log('Ошибка', error)));
 }
 
 
-deleteTask = async (itemID) => {
+const deleteTask = async (itemID) => {
     const resp = await fetch(`http://localhost:8000/deleteTask?id=${itemID}`, {
         method: 'DELETE'
     });
@@ -143,7 +149,7 @@ const editTask = async (item, id, container) => {
 
     editInputBtn.addEventListener('click', () => {
         if (value) {
-            editDoneTasks(item.id, value);
+            editDoneTasks(item._id, value);
         } else {
             noChange();
         }
@@ -152,17 +158,15 @@ const editTask = async (item, id, container) => {
 
 const editDoneTasks = async (id, value) => {
     const resp = await fetch('http://localhost:8000/updateTask', {
-        method : 'PATCH',
-        headers : {
+        method: 'PATCH',
+        headers: {
             'Content-type': 'application/json; charset=UTF-8'
         },
-        body : JSON.stringify({
-            text : value,
-            id
+        body: JSON.stringify({
+            text: value,
+            _id: id
         })
     })
-    
-    let result = await resp.json();
-    allTasks = result.data;
-    render();
+
+    getLastValue()
 }
